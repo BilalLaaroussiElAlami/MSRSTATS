@@ -32,36 +32,6 @@ def create_qq_plot(file_path):
         plt.show()
 
 
-#make a quantile-quantile plot for the data in the file at the given path
-def qq_plot(file_path):
-    # Read the data from the text file
-    data = pd.read_csv(file_path, delimiter='\t')
-    # Create Q-Q plot for each column
-    plt.figure(figsize=(8, 6))
-    for column in data.columns[:1]:
-        stats.probplot(data[column], dist="norm", plot=plt)
-        plt.title(f'Q-Q Plot for {column}')
-        plt.xlabel('Theoretical Quantiles')
-        plt.ylabel('Sample Quantiles')
-        plt.show()
-
-
-def create_histogram(file_path):
-    # Read the data from the text file
-    data = pd.read_csv(file_path, delimiter='\t')
-
-    # Create histograms for each column
-    plt.figure(figsize=(8, 6))
-
-    for column in data.columns:
-        plt.hist(data[column], bins=10, alpha=0.7, label=column)
-
-    plt.title('Histogram for Each Column')
-    plt.xlabel('Values')
-    plt.ylabel('Frequency')
-    plt.legend()
-    plt.show()
-
 
 def t_test():
     # Example data (replace these with your actual response time data)
@@ -74,7 +44,7 @@ def t_test():
  #----------------end question 1-----------------
 
 
-#----------------start question 2-----------------
+#----------------start question 3-----------------
 #make a function that takes as input a file path. The file contains two columns of data, one for each group. make a scatter plot
 #of the data in the file, with the first column on the x-axis and the second column on the y-axis.
 def scatter_plot(file_path):
@@ -83,31 +53,11 @@ def scatter_plot(file_path):
     # Create scatter plot
     plt.figure(figsize=(8, 6))
     plt.scatter(data.iloc[:,0], data.iloc[:,1])
-    plt.xlabel('X')
-    plt.ylabel('Y')
+    plt.xlabel('realism')
+    plt.ylabel('acceptability')
     plt.show()
 
 
-
-def correlation():
-# Data
-    realism = [1, 3, 6, 6, 6, 8, 10, 10, 11, 12, 14, 14, 15, 15, 17, 19, 20, 20, 21, 22, 26,
-              28, 30, 30, 31, 32, 32, 34, 35, 35, 36, 36, 36, 37, 37, 37, 39, 39, 39, 41, 42,
-              42, 43, 45, 45, 49, 50, 51, 51, 52, 52, 53, 53, 54, 56, 57, 59, 59, 60, 60, 62,
-              62, 63, 63, 67, 67, 68, 69, 69, 71, 75, 75, 77, 77, 78, 79, 79, 79, 80, 81, 82,
-              83, 83, 84, 85, 86, 86, 87, 90, 91, 92, 93, 93, 93, 94, 94, 95, 97, 97, 98]
-
-    acceptability = [5, 14, 23, 19, 24, 30, 34, 37, 38, 41, 49, 50, 51, 54, 56, 59, 64, 61, 66,
-                72, 73, 80, 82, 84, 88, 87, 90, 88, 89, 90, 92, 90, 91, 91, 95, 95, 95, 98,
-                100, 99, 98, 97, 98, 97, 97, 99, 100, 100, 99, 100, 100, 100, 94, 96, 100,
-                96, 99, 95, 94, 95, 89, 88, 89, 90, 88, 86, 84, 75, 72, 71, 71, 70, 66, 67,
-                70, 61, 62, 58, 56, 53, 52, 51, 46, 51, 45, 30, 31, 34, 30, 28, 26, 24, 21,
-                16, 7, 7, 6]
-
-# Calculate Pearson correlation coefficient and p-value
-    corr, p_value = pearsonr(realism, acceptability)
-    print(f"Pearson correlation coefficient: {corr}")
-    print(f"P-value: {p_value}")
 
 def correlation2(file_path):
     # Read the data from the file
@@ -127,20 +77,102 @@ def correlation2(file_path):
     print(f"Pearson correlation coefficient: {corr}")
     print(f"P-value: {p_value}")
 
+#----------------end question 3-----------------
 
 
-#----------------end question 2-----------------
+
+
+#----------------start question 4-----------------
+#R CODE FOR DETERMING SAMPLE SIZE
+# pwr.r.test(r = 0.5, sig.level = 0.05, power = 0.8)
+
+def type_1_error():
+    # Parameters
+    num_simulations = 1000
+    sample_size = 29
+    effect_size = 0.5
+    power = 0.8
+    significance = 0.05
+
+    # Initialize variables to count significant differences
+    significant_count = 0
+    for _ in range(num_simulations):
+        # Generate two sets of uniformly distributed samples
+        sample1 = np.random.uniform(0, 1, sample_size)
+        sample2 = np.random.uniform(0, 1, sample_size)
+
+        # Calculate mean and standard deviation for each sample
+        mean1, mean2 = np.mean(sample1), np.mean(sample2)
+        std1, std2 = np.std(sample1, ddof=1), np.std(sample2, ddof=1)
+
+        # Calculate pooled standard deviation
+        pooled_std = np.sqrt(((sample_size - 1) * std1 ** 2 + (sample_size - 1) * std2 ** 2) / (2 * (sample_size - 1)))
+
+        # Calculate t-statistic
+        t_stat = (mean1 - mean2) / (pooled_std * np.sqrt(2 / sample_size))
+
+        # Calculate degrees of freedom
+        df = 2 * sample_size - 2
+
+        # Calculate critical t-value
+        critical_t = stats.t.ppf(1 - significance / 2, df)
+
+        # Check for significance
+        if abs(t_stat) > critical_t:
+            significant_count += 1
+
+    print("significant count: ", significant_count)
+    # Calculate Type I error rate
+    type_I_error_rate = significant_count / num_simulations
+    print(f"Type I error rate: {type_I_error_rate}")
+
+
+def power():
+    import numpy as np
+    from scipy import stats
+
+    # Function to generate uniformly distributed samples
+    def generate_uniform_samples(size, a, b):
+        return np.random.uniform(a, b, size)
+
+    # Parameters
+    sample_size = 100  # Size of each sample
+    effect_size = 0.5  # Desired effect size
+    num_samples = 1000  # Number of pairs of samples
+
+    significant_count = 0  # Counter for significant differences
+
+    # Generate pairs of samples and perform t-test
+    for _ in range(num_samples):
+        # Generate two sets of samples
+        sample1 = generate_uniform_samples(sample_size, 0, 1)
+        sample2 = generate_uniform_samples(sample_size, effect_size, 1 + effect_size)
+
+        # Perform t-test
+        t_stat, p_value = stats.ttest_ind(sample1, sample2)
+
+        # Check for significance (assuming alpha = 0.05)
+        if p_value < 0.05:
+            significant_count += 1
+
+    # Calculate proportion of significant differences
+    proportion_significant = significant_count / num_samples
+    print(f"Proportion of significant differences: {proportion_significant}")
 
 
 if __name__ == '__main__':
-    """
+    #Question 1
     file_path = 'StatisticsMWO/Question1_2.txt'
     draw_boxplots(file_path)
     create_qq_plot(file_path)
-    create_histogram(file_path)
-    qq_plot(file_path)
     t_test()
-    """
+
+    #Question 3
     file_path_question_3 = 'StatisticsMWO/Question3_3.txt'
     scatter_plot(file_path_question_3)
     correlation2(file_path_question_3)
+
+
+    #question 4
+    type_1_error()
+    power()
